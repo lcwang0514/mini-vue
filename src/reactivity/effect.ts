@@ -1,17 +1,29 @@
 import { extend } from '../shared';
 
+let activeEffect;
+let shouldTrack;
 class ReactiveEffect {
   private _fn: any; // effect 的第一个fn参数
   deps = []; // 收集 收集当前实例的额依赖
-  active = true; // 判断只需要清理一次的 flag
+  active = true; // 判断只需要清理一次的 flag, 防止 stop 函数多次触发
   onStop?: () => void;
   constructor(fn, public scheduler?) {
     this._fn = fn;
   }
 
+  // run 方法执行时候，被proxy 的变量会收集依赖
+  // 用 shouldTrack 来区分是否要收集变量
   run() {
+    if (!this.active) {
+      return this._fn();
+    }
+
+    shouldTrack = true;
     activeEffect = this;
-    return this._fn();
+    const result = this._fn();
+
+    shouldTrack = false;
+    return result;
   }
 
   stop() {
@@ -29,6 +41,7 @@ function cleanupEffect(effect) {
   effect.deps.forEach((dep: any) => {
     dep.delete(effect);
   });
+  effect.deps.length = 0;
 }
 /**
  * 收集依赖
@@ -37,6 +50,7 @@ function cleanupEffect(effect) {
  */
 const targetMap = new Map();
 export function track(target, key) {
+  if (!isTracking()) return;
   // target ---> key ---> dep
   let depsMap = targetMap.get(target);
   if (!depsMap) {
@@ -50,10 +64,13 @@ export function track(target, key) {
     depsMap.set(key, dep);
   }
 
-  if (!activeEffect) return;
-
+  if (dep.has(activeEffect)) return;
   dep.add(activeEffect);
   activeEffect.deps.push(dep); // 反向收集 deps
+}
+
+function isTracking() {
+  return shouldTrack && activeEffect !== undefined;
 }
 
 /**
@@ -74,7 +91,6 @@ export function trigger(target, key) {
   }
 }
 
-let activeEffect;
 export function effect(fn, options: any = {}) {
   // fn
   const _effect = new ReactiveEffect(fn, options.scheduler);
