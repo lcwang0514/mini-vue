@@ -2,7 +2,7 @@ import { extend } from '../shared';
 
 let activeEffect;
 let shouldTrack;
-class ReactiveEffect {
+export class ReactiveEffect {
   private _fn: any; // effect 的第一个fn参数
   deps = []; // 收集 收集当前实例的额依赖
   active = true; // 判断只需要清理一次的 flag, 防止 stop 函数多次触发
@@ -90,6 +90,7 @@ export function trigger(target, key) {
 
 export function triggerEffects(dep) {
   for (const effect of dep) {
+    // scheduler 等触发更新的时候才会执行
     if (effect.scheduler) {
       effect.scheduler();
     } else {
