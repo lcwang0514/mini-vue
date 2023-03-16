@@ -19,17 +19,17 @@ function processComponent(vnode: any, container: any) {
   mountComponent(vnode, container);
 }
 
-function mountComponent(vnode, container) {
-  const instance = createComponentInstance(vnode);
+function mountComponent(initialVnode, container) {
+  const instance = createComponentInstance(initialVnode);
   setupComponent(instance);
-  setupRenderEffect(instance, container);
+  setupRenderEffect(instance, initialVnode, container);
 }
-function setupRenderEffect(instance: any, container) {
-  const { proxy, vnode } = instance;
+function setupRenderEffect(instance: any, initialVnode, container) {
+  const { proxy } = instance;
   const subTree = instance.render.call(proxy);
 
   patch(subTree, container);
-  vnode.el = subTree.el;
+  initialVnode.el = subTree.el;
 }
 function processElement(vnode, container) {
   mountElement(vnode, container);
