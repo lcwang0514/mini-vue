@@ -25,15 +25,17 @@ function mountComponent(vnode, container) {
   setupRenderEffect(instance, container);
 }
 function setupRenderEffect(instance: any, container) {
-  const subTree = instance.render();
+  const { proxy, vnode } = instance;
+  const subTree = instance.render.call(proxy);
 
   patch(subTree, container);
+  vnode.el = subTree.el;
 }
 function processElement(vnode, container) {
   mountElement(vnode, container);
 }
 function mountElement(vnode: any, container: any) {
-  const el = document.createElement(vnode.type);
+  const el = (vnode.el = document.createElement(vnode.type));
   const { children } = vnode;
   if (typeof children === 'string') {
     el.textContent = children;
