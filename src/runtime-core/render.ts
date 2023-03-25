@@ -214,6 +214,17 @@ export function createRenderer(options) {
 
       // 建立新节点映射
       const keyToNewIndexMap = new Map();
+      // 存储新节点在旧节点中的索引
+      const newIndexToOldIndexMap = new Array(toBePatched);
+      // 是否需要移动
+      let isNeedMove = false;
+      // 当前最大的 newIndex
+      let maxNewIndexSoFar = 0;
+
+      for (let i = 0; i < toBePatched; i++) {
+        // 初始化
+        newIndexToOldIndexMap[i] = 0;
+      }
 
       for (let i = s2; i <= e2; i++) {
         const nextChild = c2[i];
@@ -243,12 +254,42 @@ export function createRenderer(options) {
         }
 
         if (newIndex === undefined) {
-          // 没有查找到，直接删除
+          // 新的节点没在旧的节点查找到，直接删除旧节点
           hostRemove(prevChild.el);
         } else {
+          // 性能优化，如果所有新的子节点
+          if (newIndex >= maxNewIndexSoFar) {
+            maxNewIndexSoFar = newIndex;
+          } else {
+            isNeedMove = true;
+          }
           // 查找到，更新
+          // 设置新节点在旧节点中的位置
+          newIndexToOldIndexMap[newIndex - s2] = i + 1; // 因为初始化为 0 ，表示没有创建元素 而 i 有可能为 0，所以加 1 区分
           patch(prevChild, c2[newIndex], container, parentComponent, null);
           patched++;
+        }
+      }
+
+      // 如果有需要移动再去获取最大递增子序列
+      const increasingNewIndexSequence = isNeedMove
+        ? getSequence(newIndexToOldIndexMap)
+        : [];
+      let j = increasingNewIndexSequence.length - 1;
+      for (let i = toBePatched - 1; i >= 0; i--) {
+        const nextIndex = i + s2;
+        const nextChild = c2[nextIndex];
+        const anchor = nextIndex + 1 < l2 ? c2[nextIndex + 1].el : null;
+        if (newIndexToOldIndexMap[i] === 0) {
+          // 0 表示旧节点中没有，需要创建
+          patch(null, nextChild, container, parentComponent, anchor);
+        } else if (isNeedMove) {
+          if (j < 0 || i !== increasingNewIndexSequence[j]) {
+            console.log('需要移动位置');
+            hostInsert(nextChild.el, container, anchor);
+          } else {
+            j--;
+          }
         }
       }
     }
@@ -330,4 +371,29 @@ export function createRenderer(options) {
   return {
     createApp: createAppApi(render),
   };
+}
+
+function getTopEle(arr) {
+  if (!arr.length) return 0;
+  return arr[arr.length - 1];
+}
+
+function findNextEle(arr, n) {
+  // 判断大小用 >= ，即不替换栈顶元素
+  return arr.findIndex((item) => item >= n);
+}
+
+function getSequence(nums: number[]) {
+  // return [1, 2];
+  let stack: number[] = [];
+  for (let i = 0; i < nums.length; i++) {
+    // 数组为空直接入栈，不为空则获取栈顶元素判断大小
+    if (stack.length == 0 || getTopEle(stack) < nums[i]) {
+      stack.push(nums[i]);
+    } else {
+      let index = findNextEle(stack, nums[i]);
+      stack[index] = nums[i];
+    }
+  }
+  return stack.length;
 }
