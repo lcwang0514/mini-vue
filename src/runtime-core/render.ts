@@ -383,7 +383,7 @@ function findNextEle(arr, n) {
   return arr.findIndex((item) => item >= n);
 }
 
-function getSequence(nums: number[]) {
+function getSequence(nums: number[]): number[] {
   // return [1, 2];
   let stack: number[] = [];
   for (let i = 0; i < nums.length; i++) {
@@ -395,5 +395,5 @@ function getSequence(nums: number[]) {
       stack[index] = nums[i];
     }
   }
-  return stack.length;
+  return stack;
 }
