@@ -15,8 +15,10 @@ function patchProp(el, key, prevVal, nextVal) {
     }
   }
 }
-function insert(el, parent) {
-  parent.append(el);
+function insert(child, parent, anchor /**锚点 */) {
+  // parent.append(el);
+  // 如果 anchor 为空，效果类似于 append
+  parent.insertBefore(child, anchor || null);
 }
 function remove(child) {
   const parent = child.parentNode;

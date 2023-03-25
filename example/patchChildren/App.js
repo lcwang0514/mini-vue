@@ -2,6 +2,7 @@ import { h } from "../../lib/guide-mini-vue.esm.js"
 import ArrayToText from "./ArrayToText.js"
 import TextToText from "./TextToText.js"
 import TextToArray from "./TextToArray.js"
+import ArrayToArray from "./ArrayToArray.js"
 
 export const App = {
   name: 'App',
@@ -20,7 +21,9 @@ export const App = {
         // 字符串到字符串
         // h(TextToText)
         // 字符串到数组
-        h(TextToArray)
+        // h(TextToArray)
+        // 数组到数组
+        h(ArrayToArray)
       ]
     )
   }
