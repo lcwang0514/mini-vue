@@ -245,7 +245,10 @@ export function createRenderer(options) {
           // 没有定义key
           newIndex = keyToNewIndexMap.get(prevChild.key);
         } else {
-          for (let j = s2; j < e2; j++) {
+          /**
+           * fix: 解决没有key的dom元素出现同一个元素销毁在创建的问题
+           */
+          for (let j = s2; j <= e2; j++) {
             if (isSameVNodeType(prevChild, c2[j])) {
               newIndex = j;
               break;
