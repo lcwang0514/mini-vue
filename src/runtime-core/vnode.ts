@@ -8,6 +8,7 @@ export function createVNode(type, props?, children?) {
     type,
     props,
     children,
+    component: null,
     key: props && props.key,
     shapeFlag: getShapeFlag(type),
     el: null,
@@ -31,6 +32,8 @@ export function createVNode(type, props?, children?) {
   return vnode;
 }
 function getShapeFlag(type: any) {
+  // 如果是 string 类型的标签，表示普通的元素，
+  // 如果是对象类型的标签，说明是组件
   return typeof type === 'string'
     ? ShapeFlags.ELEMENT
     : ShapeFlags.STATEFUL_COMPONENT;

@@ -6,11 +6,12 @@ import { publicInstanceProxyHandlers } from './componentPublicInstance';
 import { initSlots } from './componentSlots';
 export function createComponentInstance(vnode, parent) {
   const component = {
-    vnode,
+    vnode, // 原始节点
     type: vnode.type,
     setupState: {},
     props: {},
     slots: {},
+    next: null, // 表示下次要更新的虚拟节点
     provides: parent ? parent.provides : {},
     parent,
     isMounted: false,
