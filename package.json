@@ -2,7 +2,6 @@
   "name": "write-mini-vue3",
   "version": "1.0.0",
   "license": "MIT",
-  "type": "module",
   "main": "lib/guide-mini-vue.cjs.js",
   "module": "lib/guide-mini-vue.esm.js",
   "scripts": {
