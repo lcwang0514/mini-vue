@@ -23,8 +23,29 @@ function parserChildren(context) {
     }
   }
 
+  // 不是插值，也不是element 当做 text
+  if (!node) {
+    node = parseText(context);
+  }
+
   nodes.push(node);
   return nodes;
+}
+
+function parseText(context: any) {
+  // 1 获取 content
+  const content = parseTextData(context, context.source.length);
+  // 2 推进
+  return {
+    type: NodeTypes.TEXT,
+    content,
+  };
+}
+
+function parseTextData(context: any, length) {
+  const content = context.source.slice(0, length);
+  advanceBy(context, context.length);
+  return content;
 }
 
 function parseElement(context) {
@@ -57,14 +78,13 @@ function parseInterpolation(context) {
   advanceBy(context, openDelimiter.length);
   // console.log('count', context.source); message}}
   const rawContentLength = closeIndex - openDelimiter.length;
-  const rawContent = context.source.slice(0, rawContentLength);
+  // const rawContent = context.source.slice(0, rawContentLength);
+  const rawContent = parseTextData(context, rawContentLength);
   const content = rawContent.trim();
 
   // console.log('content -----------', content); message
   // 把已经处理过的删除掉
-  context.source = context.source.slice(
-    rawContentLength + closeDelimiter.length
-  );
+  context.source = context.source.slice(closeDelimiter.length);
 
   return {
     type: NodeTypes.INTERPOLATION,
