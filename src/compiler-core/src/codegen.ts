@@ -1,4 +1,9 @@
-import { TO_DISPLAY_STRING, helpersMapName } from './runtimeHelpers';
+import { isString } from './../../shared/index';
+import {
+  CREATE_ELEMENT_VNODE,
+  TO_DISPLAY_STRING,
+  helpersMapName,
+} from './runtimeHelpers';
 import { NodeTypes } from './ast';
 
 export function generate(ast) {
@@ -43,6 +48,12 @@ function genNode(node: any, context) {
     case NodeTypes.SIMPLE_INTERPOLATION:
       genExpression(context, node);
       break;
+    case NodeTypes.ELEMENT:
+      genElement(context, node);
+      break;
+    case NodeTypes.COMPOUND_EXPRESSION:
+      genCompoundExpression(context, node);
+      break;
     default:
       break;
   }
@@ -63,6 +74,35 @@ function genExpression(context: any, node: any) {
   push(`${node.content}`);
 }
 
+function genElement(context, node) {
+  const { push, helper } = context;
+  const { tag, children, props } = node;
+  // const child = children[0];
+  push(`${helper(CREATE_ELEMENT_VNODE)}(`);
+  genNodeList(genNullable([tag, props, children]), context);
+  // for (let i = 0; i < children.length; i++) {
+  //   const child = children[i];
+  //   genNode(child, context);
+  // }
+  genNode(children, context);
+
+  push(')');
+}
+
+function genCompoundExpression(context, node) {
+  const { children } = node;
+  const { push } = context;
+  for (let i = 0; i < children.length; i++) {
+    const child = children[i];
+
+    if (isString(child)) {
+      push(child);
+    } else {
+      genNode(child, context);
+    }
+  }
+}
+
 function createCodegenContext() {
   const context = {
     code: '',
@@ -74,4 +114,23 @@ function createCodegenContext() {
     },
   };
   return context;
+}
+function genNullable(args) {
+  return args.map((arg) => arg || 'null');
+}
+
+function genNodeList(nodes, context) {
+  const { push } = context;
+
+  for (let i = 0; i < nodes.length; i++) {
+    const node = nodes[i];
+    if (isString(node)) {
+      push(node);
+    } else {
+      genNode(context, node);
+    }
+    if (i < nodes.length - 1) {
+      push(', ');
+    }
+  }
 }
